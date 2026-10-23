@@ -1,9 +1,7 @@
-from smtplib import SMTPException
+from urllib.parse import quote, urlencode
 
-from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.core.mail import BadHeaderError, EmailMessage
 from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Count, OuterRef, Q, Subquery
@@ -159,46 +157,26 @@ def email_candidate(request, candidate_pk):
     candidate = _contactable_candidate(request.user, candidate_pk)
     form = CandidateEmailForm(request.POST if request.method == "POST" else None)
     delivery_issue = ""
-    for address, error in (
-        (candidate.email, "This candidate has no valid email address. Use platform messaging instead."),
-        (request.user.email, "Your account needs a valid email address for replies. Ask an administrator to update it."),
-        (settings.DEFAULT_FROM_EMAIL, "Email delivery is not configured. Contact an administrator or use platform messaging."),
-    ):
-        try:
-            validate_email(address)
-        except ValidationError:
-            delivery_issue = error
-            break
-    if (
-        not delivery_issue
-        and settings.EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend"
-        and (
-            not settings.EMAIL_HOST
-            or (settings.EMAIL_HOST_USER and not settings.EMAIL_HOST_PASSWORD)
-        )
-    ):
-        delivery_issue = "Email delivery is not configured. Contact an administrator or use platform messaging."
+    mailto_url = ""
+    try:
+        validate_email(candidate.email)
+    except ValidationError:
+        delivery_issue = "This candidate has no valid email address. Use platform messaging instead."
 
     if request.method == "POST" and form.is_valid() and not delivery_issue:
-        recruiter_name = request.user.get_full_name() or request.user.username
-        email = EmailMessage(
-            subject=form.cleaned_data["subject"],
-            body=f"{recruiter_name} sent you an email through CareerBridge.\n\n{form.cleaned_data['body']}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[candidate.email],
-            reply_to=[request.user.email],
+        query = urlencode(
+            {"subject": form.cleaned_data["subject"], "body": form.cleaned_data["body"]},
+            quote_via=quote,
         )
-        try:
-            sent = email.send(fail_silently=False)
-        except (BadHeaderError, SMTPException, OSError):
-            sent = 0
-        if sent == 1:
-            messages.success(request, "Email accepted by the mail server for delivery to the candidate.")
-            return redirect("communications:email", candidate_pk=candidate.pk)
-        form.add_error(None, "The email could not be sent. Your draft is below. Please try again later or use platform messaging.")
+        mailto_url = f"mailto:{quote(candidate.email, safe='@')}?{query}"
 
     return render(
         request,
         "communications/email_candidate.html",
-        {"candidate": candidate, "form": form, "delivery_issue": delivery_issue},
+        {
+            "candidate": candidate,
+            "form": form,
+            "delivery_issue": delivery_issue,
+            "mailto_url": mailto_url,
+        },
     )

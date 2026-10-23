@@ -28,7 +28,7 @@ class CandidateEmailForm(forms.Form):
         label="Email message",
         max_length=10000,
         strip=True,
-        help_text="Up to 10,000 characters. Sent as plain text.",
+        help_text="Up to 10,000 characters. Long drafts may exceed your email app’s link limit; copy the text into your email app if needed.",
         widget=forms.Textarea(attrs={"rows": 8}),
     )
 
