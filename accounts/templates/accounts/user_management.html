@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}User management | CareerBridge{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/user_management.css' %}">{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Administrator tools</p>
+    <h1>User management</h1>
+    <p class="lead">Search accounts, manage roles, and control account access.</p>
+    {% if perms.accounts.add_user %}<a class="button" href="{% url 'accounts:user_create' %}">Add user</a>{% endif %}
+</header>
+<form method="get" class="card user-filters">
+    {% if filters.sort %}<input type="hidden" name="sort" value="{{ filters.sort }}">{% endif %}
+    <div><label for="user-search">Username or email</label><input id="user-search" type="search" name="q" value="{{ filters.q }}"></div>
+    <div><label for="role-filter">Role</label><select id="role-filter" name="role"><option value="">All roles</option>{% for value, label in roles %}<option value="{{ value }}" {% if filters.role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div><label for="staff-filter">Staff status</label><select id="staff-filter" name="is_staff"><option value="">All</option><option value="yes" {% if filters.is_staff == 'yes' %}selected{% endif %}>Yes</option><option value="no" {% if filters.is_staff == 'no' %}selected{% endif %}>No</option></select></div>
+    <div><label for="active-filter">Active</label><select id="active-filter" name="is_active"><option value="">All</option><option value="yes" {% if filters.is_active == 'yes' %}selected{% endif %}>Yes</option><option value="no" {% if filters.is_active == 'no' %}selected{% endif %}>No</option></select></div>
+    <div class="actions"><button class="button" type="submit">Search</button><a href="{% url 'accounts:user_management' %}">Reset</a></div>
+</form>
+<form method="post" class="card stack user-list">
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}<div class="alert alert--error" role="alert">{{ formset.non_form_errors }}</div>{% endif %}
+    <p>{{ page_obj.paginator.count }} user{{ page_obj.paginator.count|pluralize }} found. Staff status is read-only. Your own account and protected superusers cannot be changed here.</p>
+    <div class="user-table-scroll">
+    <table class="user-table">
+        <thead><tr><th scope="col">Select</th>{% for label, query in sort_headers %}<th scope="col"><a href="?{{ query }}">{{ label }}</a></th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for form in formset %}
+            <tr>
+                <td>{% if perms.accounts.delete_user and request.user.pk != form.instance.pk %}{% if request.user.is_superuser or not form.instance.is_superuser %}<input type="checkbox" name="selected" value="{{ form.instance.pk }}" aria-label="Select {{ form.instance.username }} for deletion">{% endif %}{% endif %}</td>
+                <td>{{ form.id }}{% if perms.accounts.change_user %}<a href="{% url 'accounts:user_edit' form.instance.pk %}">{{ form.instance.username }}</a>{% else %}{{ form.instance.username }}{% endif %}{{ form.non_field_errors }}{{ form.id.errors }}</td>
+                <td>{{ form.instance.email|default:"—" }}</td>
+                <td><label class="visually-hidden" for="{{ form.role.id_for_label }}">Role for {{ form.instance.username }}</label>{{ form.role }}{{ form.role.errors }}</td>
+                <td>{{ form.instance.is_staff|yesno:"Yes,No" }}</td>
+                <td><label class="visually-hidden" for="{{ form.is_active.id_for_label }}">Active for {{ form.instance.username }}</label>{{ form.is_active }}{{ form.is_active.errors }}</td>
+            </tr>
+        {% empty %}<tr><td colspan="6">No users match these filters.</td></tr>{% endfor %}
+        </tbody>
+    </table>
+    </div>
+    <div class="actions">
+        {% if perms.accounts.change_user %}<button class="button" type="submit">Save changes</button>{% endif %}
+        {% if perms.accounts.delete_user %}<button class="button button--secondary" type="submit" formaction="{% url 'accounts:user_delete' %}" formnovalidate>Delete selected users…</button>{% endif %}
+    </div>
+</form>
+<nav class="actions" aria-label="User list pages">
+    {% if page_obj.has_previous %}<a href="?{{ page_query }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?{{ page_query }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endblock %}

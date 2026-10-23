@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Report submitted | CareerBridge{% endblock %}
+{% block content %}
+<section class="empty-state">
+    <h1>Thank you for your report</h1>
+    <p>An administrator will investigate your concern. Submitting a report does not automatically remove a job or suspend an account.</p>
+    <a class="button" href="{% url 'accounts:dashboard' %}">Back to dashboard</a>
+</section>
+{% endblock %}

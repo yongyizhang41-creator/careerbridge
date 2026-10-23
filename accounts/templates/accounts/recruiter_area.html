@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Recruiter area | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>Turn promising applicants into strong hires.</h1>
+    <p class="lead">Manage your openings, review candidates, and follow hiring progress.</p>
+</header>
+
+{% if new_matches %}
+    <div class="alert alert--success" role="status">
+        You have {{ new_matches }} new candidate match{{ new_matches|pluralize:"es" }} in your saved searches.
+        <a href="{% url 'accounts:saved_searches' %}">View saved searches</a>
+    </div>
+{% endif %}
+
+<section class="card recruiter-tools" aria-labelledby="recruiter-start-title">
+    <h2 id="recruiter-start-title">Hiring tools</h2>
+    <p>Open your job posts to review candidates and their applications.</p>
+    <a class="button" href="{% url 'jobs:mine' %}">My jobs and applicants</a>
+    <a class="button button--secondary" href="{% url 'jobs:pipeline' %}">Hiring pipeline</a>
+    <a class="button button--secondary" href="{% url 'accounts:candidate_search' %}">Find candidates</a>
+    <a class="button button--secondary" href="{% url 'accounts:saved_searches' %}">Saved searches</a>
+    <a class="button button--secondary" href="{% url 'accounts:dashboard' %}">Back to dashboard</a>
+</section>
+{% endblock %}

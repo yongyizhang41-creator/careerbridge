@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Messages | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Private conversations</p>
+    <h1>Messages</h1>
+    <p class="lead">Keep recruiter and candidate conversations together without sharing personal email addresses.</p>
+</header>
+
+{% if conversations %}
+    <div class="conversation-list">
+        {% for conversation in conversations %}
+            <article class="card conversation-card{% if conversation.unread_count %} conversation-card--unread{% endif %}">
+                <div>
+                    <div class="cluster">
+                        <h2>{{ conversation.other_user.get_full_name|default:conversation.other_user.username }}</h2>
+                        {% if conversation.unread_count %}
+                            <span class="badge" aria-label="{{ conversation.unread_count }} unread message{{ conversation.unread_count|pluralize }}">
+                                {{ conversation.unread_count }} unread
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if conversation.latest_body %}
+                        <p class="conversation-card__preview">{{ conversation.latest_body|truncatechars:160 }}</p>
+                        <p class="text-muted">Last message {{ conversation.latest_created_at|date:"M j, Y, g:i a" }}</p>
+                    {% endif %}
+                </div>
+                <a class="button button--secondary" href="{% url 'communications:detail' conversation.pk %}">
+                    Open conversation<span class="visually-hidden"> with {{ conversation.other_user.username }}</span>
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <section class="empty-state">
+        <div class="empty-state__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg></div>
+        <h2>No messages yet</h2>
+        {% if request.user.role == 'recruiter' %}
+            <p>Open a candidate from an applicant list to start a private conversation.</p>
+            <a class="button" href="{% url 'jobs:mine' %}">View my jobs</a>
+        {% else %}
+            <p>Messages from recruiters will appear here. You can reply without sharing your personal email.</p>
+            <a class="button" href="{% url 'jobs:search' %}">Find jobs</a>
+        {% endif %}
+    </section>
+{% endif %}
+{% endblock %}

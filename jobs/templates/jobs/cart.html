@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Job cart | CareerBridge{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/workflows.css' %}?v=20261015-1">{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job seeker workspace</p>
+    <h1>Job cart</h1>
+    <p class="lead">Save opportunities, compare the details, and decide where to apply. Your cart stays with your account.</p>
+    <a href="{% url 'jobs:search' %}">Find more jobs</a>
+</header>
+{% if comparison_form.errors %}<div class="alert alert--error" role="alert">{{ comparison_form.items.errors }}</div>{% endif %}
+{% if items %}
+    <form id="compare-jobs" method="get" action="{% url 'jobs:cart_compare' %}">
+        <p>Select at least two available jobs for a side-by-side comparison.</p>
+        <button class="button" type="submit">Compare selected jobs</button>
+    </form>
+    <div class="stack workflow-list">
+        {% for item in items %}
+            <article class="card">
+                <h2>{{ item.job.title }}</h2>
+                <p>{{ item.job.company }}</p>
+                {% if item.job.status == 'active' %}
+                    <label class="workflow-check"><input type="checkbox" form="compare-jobs" name="items" value="{{ item.pk }}"{% if item.pk|stringformat:'s' in selected_ids %} checked{% endif %}> Compare {{ item.job.title }} at {{ item.job.company }}</label>
+                    <p>{{ item.job.get_remote_type_display }} &middot; {{ item.job.address|default:"Location not provided" }}</p>
+                    <p>Salary: {{ item.job.salary_min|default_if_none:"Not provided" }} &ndash; {{ item.job.salary_max|default_if_none:"Not provided" }}</p>
+                    {% if item.applied %}<p class="badge">Already applied</p>{% endif %}
+                    <p><a href="{% url 'jobs:detail' item.job.pk %}">{% if item.applied %}View job and application{% else %}Review job and apply{% endif %}</a></p>
+                {% else %}
+                    <p class="alert">This job is no longer available. It cannot be compared or applied to.</p>
+                {% endif %}
+                <form method="post" action="{% url 'jobs:cart_remove' item.pk %}">
+                    {% csrf_token %}
+                    <button class="button button--ghost button--small" type="submit">Remove from cart</button>
+                </form>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <section class="empty-state">
+        <h2>Your cart is empty</h2>
+        <p>Add jobs from search results or a job's detail page. Saving a job does not submit an application.</p>
+        <a class="button" href="{% url 'jobs:search' %}">Find jobs</a>
+    </section>
+{% endif %}
+{% endblock %}

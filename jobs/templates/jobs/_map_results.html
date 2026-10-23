@@ -1,0 +1,48 @@
+<div class="map-toolbar">
+    <p class="text-muted">
+        {{ markers|length }} job{{ markers|length|pluralize }} on the map
+        {% if unpinned_count %}
+            &middot; {{ unpinned_count }} matching job{{ unpinned_count|pluralize }} {{ unpinned_count|pluralize:"has,have" }} no office location
+            (<a href="{{ list_url }}">see the list</a>)
+        {% endif %}
+        {% if commute_radius %}
+            &middot; Your commute radius is {{ commute_radius }} miles
+        {% endif %}
+    </p>
+    <form class="map-toolbar__controls" novalidate method="post" action="{% url 'jobs:commute_radius' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}">
+        {% csrf_token %}
+        <label for="{{ radius_form.radius.id_for_label }}">{{ radius_form.radius.label }}</label>
+        {{ radius_form.radius }}
+        <button class="button button--secondary button--small" type="button" data-locate>Show my location</button>
+        {% if request.user.role == 'job_seeker' %}
+            <button class="button button--ghost button--small" type="submit">Save as my commute radius</button>
+        {% endif %}
+    </form>
+</div>
+<p class="location-card__message" data-locate-message aria-live="polite" hidden></p>
+
+<div class="map-layout">
+    <div class="map map--tall" id="job-map" role="region" aria-label="Job locations"></div>
+    <ol class="job-list" data-job-list aria-label="Jobs on the map">
+        {% for job in markers %}
+            <li>
+                <button class="job-item" type="button" data-job-id="{{ job.id }}">
+                    <span class="job-item__title">{{ job.title }}</span>
+                    <span class="job-item__meta">{{ job.company }}{% if job.address %} &middot; {{ job.address }}{% endif %}</span>
+                    <span class="job-item__row">
+                        <span class="badge">{{ job.remote_type }}</span>
+                        {% if job.visa_sponsorship %}<span class="badge badge--accent">Visa</span>{% endif %}
+                        {% if job.salary_min or job.salary_max %}
+                            <span class="text-muted">{% if job.salary_min and job.salary_max %}${{ job.salary_min|floatformat:"0g" }} - ${{ job.salary_max|floatformat:"0g" }}{% elif job.salary_min %}From ${{ job.salary_min|floatformat:"0g" }}{% else %}Up to ${{ job.salary_max|floatformat:"0g" }}{% endif %}</span>
+                        {% endif %}
+                    </span>
+                </button>
+            </li>
+        {% empty %}
+            <li class="job-list__empty">No pinned jobs match these filters.</li>
+        {% endfor %}
+        <li class="job-list__empty" data-radius-empty hidden>No pinned jobs within this distance of you. Try a larger distance.</li>
+    </ol>
+</div>
+
+{{ markers|json_script:"job-markers" }}

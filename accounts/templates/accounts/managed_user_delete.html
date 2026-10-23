@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Confirm user deletion | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading"><p class="eyebrow">Administrator tools</p><h1>Delete selected users?</h1></header>
+<section class="card stack">
+    <p>This permanently deletes the selected accounts and their related records, including profiles, job posts, applications, and messages. To retain history, cancel and deactivate the accounts instead.</p>
+    <ul>{% for user in selected_users %}<li>{{ user.username }} — {{ user.get_role_display }}</li>{% endfor %}</ul>
+    <form method="post" action="{% url 'accounts:user_delete' %}">
+        {% csrf_token %}
+        {% for user in selected_users %}<input type="hidden" name="selected" value="{{ user.pk }}">{% endfor %}
+        <div class="actions"><button class="button" type="submit" name="confirm" value="yes">Permanently delete users</button><a href="{% url 'accounts:user_management' %}">Cancel</a></div>
+    </form>
+</section>
+{% endblock %}

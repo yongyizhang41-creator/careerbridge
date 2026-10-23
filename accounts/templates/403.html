@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Permission denied | CareerBridge{% endblock %}
+
+{% block content %}
+<section class="empty-state" aria-labelledby="permission-title">
+    <div class="empty-state__icon" aria-hidden="true">403</div>
+    <p class="eyebrow">Access restricted</p>
+    <h1 id="permission-title">Permission denied</h1>
+    <p class="lead">Your account does not have permission to view this page.</p>
+    <a class="button" href="{% url 'accounts:dashboard' %}">Return to dashboard</a>
+</section>
+{% endblock %}

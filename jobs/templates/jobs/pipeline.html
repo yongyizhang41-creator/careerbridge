@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Hiring pipeline | CareerBridge{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/workflows.css' %}?v=20261015-1">{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>Hiring pipeline</h1>
+    <p class="lead">Move applicants through your hiring stages. Drag a card or choose a stage and save.</p>
+    <a href="{% url 'jobs:mine' %}">Back to my jobs</a>
+</header>
+<form method="get" class="workflow-filter">
+    <div class="form-field">
+        <label for="pipeline-job">Job posting</label>
+        <select name="job" id="pipeline-job">
+            <option value="">All my jobs</option>
+            {% for job in jobs %}
+                <option value="{{ job.pk }}"{% if selected_job.pk == job.pk %} selected{% endif %}>{{ job.title }} at {{ job.company }}{% if job.status == 'removed' %} (removed){% endif %}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button class="button button--secondary" type="submit">Filter</button>
+</form>
+{% if selected_job.status == 'removed' %}<p class="alert">This job has been removed. You can still manage its existing applications.</p>{% endif %}
+<p id="pipeline-feedback" role="status" aria-live="polite"></p>
+<div class="pipeline" data-pipeline aria-label="Hiring stages">
+    {% for column in columns %}
+        <section class="pipeline__column" data-stage="{{ column.value }}" aria-labelledby="stage-{{ column.value }}">
+            <h2 id="stage-{{ column.value }}">{{ column.label }} <span class="badge" data-stage-count>{{ column.applications|length }}</span></h2>
+            <div class="pipeline__cards">
+                {% for application in column.applications %}
+                    <article class="pipeline__card" data-application="{{ application.pk }}">
+                        <h3><a href="{% url 'jobs:application_detail' application.pk %}">{{ application.applicant.get_full_name|default:application.applicant.username }}</a></h3>
+                        <p>{{ application.job.title }} at {{ application.job.company }}</p>
+                        <p class="text-muted">Applied {{ application.created_at|date:"M j, Y" }}</p>
+                        <form method="post" action="{% url 'jobs:pipeline_move' application.pk %}" data-move-form>
+                            {% csrf_token %}
+                            <input type="hidden" name="expected_status" value="{{ application.status }}">
+                            {% if selected_job %}<input type="hidden" name="job" value="{{ selected_job.pk }}">{% endif %}
+                            <div class="form-field">
+                                <label for="status-{{ application.pk }}">Hiring stage</label>
+                                <select name="status" id="status-{{ application.pk }}">
+                                    {% for value, label in statuses %}<option value="{{ value }}"{% if application.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <button class="button button--small" type="submit">Save stage</button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+            <p class="text-muted pipeline__empty"{% if column.applications %} hidden{% endif %}>No applicants in this stage.</p>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}
+{% block extra_body %}<script src="{% static 'js/pipeline.js' %}?v=20261015-1" defer></script>{% endblock %}

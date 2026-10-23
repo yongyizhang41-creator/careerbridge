@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Registration complete | CareerBridge{% endblock %}
+
+{% block content %}
+<section class="empty-state" aria-labelledby="registration-title">
+    <div class="empty-state__icon" aria-hidden="true">&#10003;</div>
+    <p class="eyebrow">Account created</p>
+    <h1 id="registration-title">Registration complete</h1>
+    <p class="lead">Your account was created successfully. Log in to open your new workspace.</p>
+    <a class="button" href="{% url 'accounts:login' %}">Continue to log in</a>
+</section>
+{% endblock %}

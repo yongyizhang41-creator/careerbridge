@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Job moderation - CareerBridge{% endblock %}
+
+{% block content %}
+<h1>Job moderation</h1>
+
+<p>
+    <a href="{% url 'jobs:moderation' %}">All</a> -
+    <a href="?status=active">Active</a> -
+    <a href="?status=removed">Removed</a>
+</p>
+
+{% if jobs %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Company</th>
+                <th>Recruiter</th>
+                <th>Posted</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for job in jobs %}
+            <tr>
+                <td><a href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a></td>
+                <td>{{ job.company }}</td>
+                <td>{{ job.recruiter.username }}</td>
+                <td>{{ job.created_at|date:"M j, Y" }}</td>
+                <td>{{ job.get_status_display }}</td>
+                <td>
+                    {% if job.status == "active" %}
+                        <form method="post" action="{% url 'jobs:remove' job.pk %}"
+                              onsubmit="return confirm('Remove this job post?');">
+                            {% csrf_token %}
+                            <button class="button button--small" type="submit">Remove</button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{% url 'jobs:restore' job.pk %}">
+                            {% csrf_token %}
+                            <button class="button button--ghost button--small" type="submit">Restore</button>
+                        </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p class="text-muted">No jobs here.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} - CareerBridge{% endblock %}
+
+{% block extra_head %}{% if job.has_location %}{% include "components/map_assets.html" %}{% endif %}{% endblock %}
+
+{% block content %}
+{% if job.status == "removed" %}
+    <div class="alert alert--error">This job post has been removed by an administrator and is hidden from job seekers.</div>
+{% endif %}
+<h1>{{ job.title }}</h1>
+<p class="text-muted">
+    {{ job.company }} - {{ job.get_remote_type_display }}
+    {% if job.address %} - {{ job.address }}{% endif %}
+</p>
+
+{% if job.salary_min or job.salary_max %}
+    <p>Salary: {{ job.salary_min|default:"-" }} - {{ job.salary_max|default:"-" }}</p>
+{% endif %}
+{% if job.visa_sponsorship %}<p>Visa sponsorship available</p>{% endif %}
+
+{% if job.skill_list %}
+    <p>Skills: {{ job.skill_list|join:", " }}</p>
+{% endif %}
+
+<div>{{ job.description|linebreaks }}</div>
+
+{% if job.has_location %}
+    {% with lat=job.lat|stringformat:"f" lng=job.lng|stringformat:"f" %}
+        <section class="card location-card location-card--compact" aria-labelledby="office-heading">
+            <h2 id="office-heading">Office location</h2>
+            <div class="map map--small" data-pin-map data-lat="{{ lat }}" data-lng="{{ lng }}" data-label="{{ job.company }} office"></div>
+            {% if job.address %}<p>{{ job.address }}</p>{% endif %}
+            <p><a href="https://www.openstreetmap.org/?mlat={{ lat }}&amp;mlon={{ lng }}#map=17/{{ lat }}/{{ lng }}" target="_blank" rel="noopener">Open in OpenStreetMap</a></p>
+        </section>
+    {% endwith %}
+{% endif %}
+
+<p class="text-muted">Posted {{ job.created_at|date:"M j, Y" }}</p>
+
+{% if request.user == job.recruiter %}
+    <a class="button button--small" href="{% url 'jobs:edit' job.pk %}">Edit</a>
+    <a class="button button--secondary button--small" href="{% url 'jobs:job_applications' job.pk %}">View applicants</a>
+{% endif %}
+
+{% if request.user.is_authenticated and request.user.role == 'job_seeker' %}
+    <form method="post" action="{% url 'jobs:cart_add' job.pk %}">
+        {% csrf_token %}
+        <p><button class="button button--secondary" type="submit">Add to job cart</button></p>
+    </form>
+    <section class="card" aria-labelledby="application-heading">
+        {% if application %}
+            <h2 id="application-heading">Application submitted</h2>
+            <p>You applied on {{ application.created_at|date:"M j, Y" }}.</p>
+            <p>Status: <span class="badge badge--{{ application.status }}">{{ application.get_status_display }}</span></p>
+            <p><a href="{% url 'jobs:my_applications' %}">Track my applications</a></p>
+            {% if application.note %}
+                <h3>Your personalized note</h3>
+                {{ application.note|linebreaks }}
+            {% endif %}
+        {% else %}
+            <h2 id="application-heading">Apply to this job</h2>
+            <p>Apply with one click, or add a personalized note first.</p>
+            <form method="post" action="{% url 'jobs:apply' job.pk %}">
+                {% csrf_token %}
+                {% include "components/form_field.html" with field=application_form.note %}
+                <button class="button" type="submit">Apply now</button>
+            </form>
+        {% endif %}
+    </section>
+{% elif not request.user.is_authenticated %}
+    <p><a class="button" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">Log in to apply</a></p>
+{% endif %}
+{% if request.user.is_authenticated and job.status == 'active' %}
+    <p><a href="{% url 'reports:job' job.pk %}">Report this job</a>{% if request.user.pk != job.recruiter_id and job.recruiter.is_active %} &middot; <a href="{% url 'reports:user' job.recruiter_id %}">Report posting account</a>{% endif %}</p>
+{% endif %}
+{% endblock %}

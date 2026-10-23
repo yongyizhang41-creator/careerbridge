@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Conversation with {{ other_user.username }} | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading conversation-heading">
+    <div>
+        <p class="eyebrow">Private conversation</p>
+        <h1>{{ other_user.get_full_name|default:other_user.username }}</h1>
+        <p class="lead">
+            {% if request.user.role == 'recruiter' %}Candidate{% else %}Recruiter{% endif %}
+            conversation inside CareerBridge
+        </p>
+    </div>
+    <a href="{% url 'communications:inbox' %}">Back to messages</a>
+    {% if request.user.role == 'recruiter' %}
+        <a href="{% url 'communications:email' other_user.pk %}">Email candidate</a>
+    {% endif %}
+    <a href="{% url 'reports:user' other_user.pk %}">Report this user</a>
+</header>
+
+<section class="message-panel" aria-labelledby="thread-heading">
+    <h2 class="visually-hidden" id="thread-heading">Conversation history</h2>
+    {% if conversation_messages %}
+        <ol class="message-thread">
+            {% for message in conversation_messages %}
+                <li class="message{% if message.sender_id == request.user.id %} message--mine{% endif %}">
+                    <article class="message__bubble">
+                        <header class="message__meta">
+                            <strong>{% if message.sender_id == request.user.id %}You{% else %}{{ message.sender.get_full_name|default:message.sender.username }}{% endif %}</strong>
+                            <time datetime="{{ message.created_at|date:'c' }}">{{ message.created_at|date:"M j, Y, g:i a" }}</time>
+                        </header>
+                        <p>{{ message.body|linebreaksbr }}</p>
+                    </article>
+                </li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <div class="empty-state message-panel__empty">
+            <h2>Start the conversation</h2>
+            <p>Send the first message below. Personal email addresses stay private.</p>
+        </div>
+    {% endif %}
+</section>
+
+<section class="card message-composer" aria-labelledby="composer-heading">
+    <h2 id="composer-heading">{% if conversation %}Reply{% else %}New message{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% include "components/form_field.html" with field=form.body %}
+        <button class="button" type="submit">Send message</button>
+    </form>
+</section>
+{% endblock %}

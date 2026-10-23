@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Compare jobs | CareerBridge{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/workflows.css' %}?v=20261015-1">{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job cart</p>
+    <h1>Compare opportunities</h1>
+    <p class="lead">Review the same details for each job before applying.</p>
+    <a href="{% url 'jobs:cart' %}">Back to cart</a>
+</header>
+<div class="comparison-scroll" role="region" aria-label="Job comparison" tabindex="0">
+    <table class="comparison-table">
+        <caption>Selected jobs from your cart</caption>
+        <thead><tr><th scope="col">Details</th>{% for item in items %}<th scope="col">{{ item.job.title }}</th>{% endfor %}</tr></thead>
+        <tbody>
+            <tr><th scope="row">Company</th>{% for item in items %}<td>{{ item.job.company }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Location</th>{% for item in items %}<td>{{ item.job.address|default:"Not provided" }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Work type</th>{% for item in items %}<td>{{ item.job.get_remote_type_display }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Salary range</th>{% for item in items %}<td>{{ item.job.salary_min|default_if_none:"Not provided" }} &ndash; {{ item.job.salary_max|default_if_none:"Not provided" }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Visa sponsorship</th>{% for item in items %}<td>{{ item.job.visa_sponsorship|yesno:"Available,Not offered" }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Skills</th>{% for item in items %}<td>{{ item.job.skill_list|join:", "|default:"Not provided" }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Description</th>{% for item in items %}<td>{{ item.job.description|linebreaks }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Posted</th>{% for item in items %}<td>{{ item.job.created_at|date:"M j, Y" }}</td>{% endfor %}</tr>
+            <tr><th scope="row">Next step</th>{% for item in items %}<td>{% if item.applied %}<p class="badge">Already applied</p>{% endif %}<a class="button button--small" href="{% url 'jobs:detail' item.job.pk %}">{% if item.applied %}View application{% else %}Review and apply{% endif %}</a></td>{% endfor %}</tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

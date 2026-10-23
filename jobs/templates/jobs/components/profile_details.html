@@ -1,0 +1,40 @@
+            <h3>Headline</h3>
+            <p>{{ profile.headline|default:"No headline provided." }}</p>
+            <h3>Skills</h3>
+            <p>{{ profile.skill_list|join:", "|default:"No skills provided." }}</p>
+            <h3>Location</h3>
+            <p>{{ profile.location|default:"No location provided." }}</p>
+            <h3>Education</h3>
+            {% for education in profile.education_records.all %}
+                <div>
+                    <h4>{{ education.institution }}</h4>
+                    <p>{{ education.degree }}{% if education.field_of_study %} &middot; {{ education.field_of_study }}{% endif %}</p>
+                    <p class="text-muted">{{ education.start_date|date:"M Y"|default:"Start date not provided" }} &ndash; {{ education.end_date|date:"M Y"|default:"End date not provided" }}</p>
+                </div>
+            {% empty %}
+                <p>No education provided.</p>
+            {% endfor %}
+            <h3>Work experience</h3>
+            {% for experience in profile.work_experiences.all %}
+                <div>
+                    <h4>{{ experience.title }} at {{ experience.company }}</h4>
+                    <p class="text-muted">{{ experience.start_date|date:"M Y"|default:"Start date not provided" }} &ndash; {{ experience.end_date|date:"M Y"|default:"End date not provided" }}</p>
+                    {{ experience.description|linebreaks }}
+                </div>
+            {% empty %}
+                <p>No work experience provided.</p>
+            {% endfor %}
+            <h3>Professional links</h3>
+            <ul>
+                {% for link in profile.professional_links.all %}
+                    <li>
+                        {% if link.url|slice:':8' == 'https://' or link.url|slice:':7' == 'http://' %}
+                            <a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{{ link.label }}</a>
+                        {% else %}
+                            {{ link.label }} (link unavailable)
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>No professional links provided.</li>
+                {% endfor %}
+            </ul>

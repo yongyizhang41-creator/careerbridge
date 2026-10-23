@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Applicant map for {{ job.title }} | CareerBridge{% endblock %}
+
+{% block extra_head %}{% include "components/map_assets.html" %}{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>Where applicants for {{ job.title }} are based</h1>
+    <p class="lead">Applicants close together are grouped into a circle with a count. Click a circle to zoom in, or a dot to see who it is.</p>
+    <a href="{% url 'jobs:job_applications' job.pk %}">Back to applicants</a>
+</header>
+
+<p class="text-muted">
+    {{ points|length }} of {{ total }} applicant{{ total|pluralize }} {{ points|length|pluralize:"has,have" }} pinned a location on their profile.
+    {% if job.has_location %}The office is marked with a pin.{% endif %}
+</p>
+
+<div class="map-layout">
+    <div class="map map--tall" id="applicant-map"
+         {% if job.has_location %}data-office-lat="{{ job.lat|stringformat:"f" }}" data-office-lng="{{ job.lng|stringformat:"f" }}" data-office-label="{{ job.company }} office"{% endif %}></div>
+    <section class="card" aria-labelledby="places-heading">
+        <h2 id="places-heading">Applicants by location</h2>
+        {% if places %}
+            <table class="places">
+                <thead>
+                    <tr><th scope="col">Location</th><th scope="col">Applicants</th></tr>
+                </thead>
+                <tbody>
+                    {% for place, count in places %}
+                        <tr><td>{{ place }}</td><td>{{ count }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No one has applied to this job yet.</p>
+        {% endif %}
+    </section>
+</div>
+
+{{ points|json_script:"applicant-points" }}
+{% endblock %}
+
+{% block extra_body %}
+<script defer src="{% static 'js/applicant_map.js' %}?v=20261016-1"></script>
+{% endblock %}

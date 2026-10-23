@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Job seeker area | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job seeker workspace</p>
+    <h1>My profile</h1>
+    <p class="lead">Keep your skills, experience, and professional links up to date.</p>
+</header>
+
+<div class="actions profile-workspace-actions">
+    <a class="button" href="{% url 'accounts:edit_job_seeker_profile' %}">{% if profile %}Edit profile{% else %}Create profile{% endif %}</a>
+    <a class="button button--secondary" href="{% url 'jobs:recommendations' %}">Recommended jobs</a>
+</div>
+{% if profile %}
+<section class="card profile-overview" aria-labelledby="profile-overview-title">
+    <h2 id="profile-overview-title">{{ profile.headline|default:"Your profile" }}</h2>
+    {% if profile.location %}<p class="text-muted">{{ profile.location }}</p>{% endif %}
+    {% if profile.skills %}<p><strong>Skills</strong><br>{{ profile.skills }}</p>{% endif %}
+    <p class="text-muted">Recruiter discovery: {% if profile.recruiter_visible %}Enabled{% else %}Disabled{% endif %}</p>
+</section>
+{% else %}
+<div class="empty-state"><h2>Introduce yourself</h2><p>Create your profile before adding education, experience, projects, and links.</p></div>
+{% endif %}
+<section class="card profile-section">
+    <h2>Education</h2>
+
+    {% if profile %}
+        <a class="button button--small profile-section__action"
+           href="{% url 'accounts:add_education' %}">
+            Add education
+        </a>
+
+        {% for education in education_records %}
+            <article class="profile-record">
+                <h3>{{ education.institution }}</h3>
+
+                {% if education.degree or education.field_of_study %}
+                    <p>
+                        {{ education.degree }}
+                        {% if education.degree and education.field_of_study %}—{% endif %}
+                        {{ education.field_of_study }}
+                    </p>
+                {% endif %}
+
+                {% if education.start_date or education.end_date %}
+                    <p class="text-muted">
+                        {{ education.start_date|default:"Start date not provided" }}
+                        –
+                        {{ education.end_date|default:"Present" }}
+                    </p>
+                {% endif %}
+
+                <div class="record-actions">
+                    <a class="button button--secondary button--small"
+                       href="{% url 'accounts:edit_education' education.pk %}">
+                        Edit
+                    </a>
+                    <form method="post"
+                          action="{% url 'accounts:delete_education' education.pk %}"
+                          onsubmit="return confirm('Delete this education record?');">
+                        {% csrf_token %}
+                        <button class="button button--danger button--small" type="submit">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <p>No education records added yet.</p>
+        {% endfor %}
+    {% else %}
+        <p>Create your basic profile before adding education.</p>
+    {% endif %}
+</section>
+<section class="card profile-section">
+    <h2>Work experience</h2>
+
+    {% if profile %}
+        <a
+            class="button button--small profile-section__action"
+            href="{% url 'accounts:add_work_experience' %}"
+        >
+            Add work experience
+        </a>
+
+        {% for experience in work_experiences %}
+            <article class="profile-record">
+                <h3>{{ experience.title }}</h3>
+                <p>{{ experience.company }}</p>
+
+                {% if experience.start_date or experience.end_date %}
+                    <p class="text-muted">
+                        {{ experience.start_date|default:"Start date not provided" }}
+                        –
+                        {{ experience.end_date|default:"Present" }}
+                    </p>
+                {% endif %}
+
+                {% if experience.description %}
+                    <p>{{ experience.description|linebreaksbr }}</p>
+                {% endif %}
+
+                <div class="record-actions">
+                    <a class="button button--secondary button--small"
+                       href="{% url 'accounts:edit_work_experience' experience.pk %}">
+                        Edit
+                    </a>
+                    <form method="post"
+                          action="{% url 'accounts:delete_work_experience' experience.pk %}"
+                          onsubmit="return confirm('Delete this work experience?');">
+                        {% csrf_token %}
+                        <button class="button button--danger button--small" type="submit">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <p>No work experience added yet.</p>
+        {% endfor %}
+    {% else %}
+        <p>Create your basic profile before adding work experience.</p>
+    {% endif %}
+</section>
+<section class="card profile-section">
+    <h2>Professional links</h2>
+
+    {% if profile %}
+        <a
+            class="button button--small profile-section__action"
+            href="{% url 'accounts:add_professional_link' %}"
+        >
+            Add professional link
+        </a>
+
+        {% for link in professional_links %}
+            <article class="profile-record">
+                <h3>{{ link.label }}</h3>
+                <p>
+                    <a
+                        href="{{ link.url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {{ link.url }}
+                    </a>
+                </p>
+
+                <div class="record-actions">
+                    <a class="button button--secondary button--small"
+                       href="{% url 'accounts:edit_professional_link' link.pk %}">
+                        Edit
+                    </a>
+                    <form method="post"
+                          action="{% url 'accounts:delete_professional_link' link.pk %}"
+                          onsubmit="return confirm('Delete this professional link?');">
+                        {% csrf_token %}
+                        <button class="button button--danger button--small" type="submit">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <p>No professional links added yet.</p>
+        {% endfor %}
+    {% else %}
+        <p>Create your basic profile before adding professional links.</p>
+    {% endif %}
+</section>
+<section class="card profile-section">
+    <h2>Projects</h2>
+
+    {% if profile %}
+        <a class="button button--small profile-section__action"
+           href="{% url 'accounts:add_project' %}">
+            Add project
+        </a>
+
+        {% for project in projects %}
+            <article class="profile-record">
+                <h3>{{ project.title }}</h3>
+
+                {% if project.description %}
+                    <p>{{ project.description|linebreaksbr }}</p>
+                {% endif %}
+
+                {% if project.url|slice:':8' == 'https://' or project.url|slice:':7' == 'http://' %}
+                    <p>
+                        <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.url }}</a>
+                    </p>
+                {% endif %}
+
+                <div class="record-actions">
+                    <a class="button button--secondary button--small"
+                       href="{% url 'accounts:edit_project' project.pk %}">
+                        Edit
+                    </a>
+                    <form method="post"
+                          action="{% url 'accounts:delete_project' project.pk %}"
+                          onsubmit="return confirm('Delete this project?');">
+                        {% csrf_token %}
+                        <button class="button button--danger button--small" type="submit">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <p>No projects added yet.</p>
+        {% endfor %}
+    {% else %}
+        <p>Create your basic profile before adding projects.</p>
+    {% endif %}
+</section>
+{% endblock %}

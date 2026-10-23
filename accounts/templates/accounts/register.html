@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Create account | CareerBridge{% endblock %}
+{% block main_class %}container auth-shell{% endblock %}
+
+{% block content %}
+<section class="auth-intro">
+    <p class="eyebrow">Start here</p>
+    <h1>Create space for your next opportunity.</h1>
+    <p class="lead">Choose the account that matches how you will use CareerBridge. Administrators are created securely by the team.</p>
+    <ul class="auth-intro__points">
+        <li>Job seekers can build profiles and track applications.</li>
+        <li>Recruiters can publish roles and review candidates.</li>
+        <li>Every account receives a workspace tailored to its role.</li>
+    </ul>
+</section>
+
+<section class="card form-card" aria-labelledby="register-title">
+    <p class="eyebrow">New account</p>
+    <h2 id="register-title">Create account</h2>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert--error" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            {% include "components/form_field.html" with field=field %}
+        {% endfor %}
+        <button class="button" type="submit">Create account</button>
+    </form>
+
+    <p class="text-muted">Already registered? <a href="{% url 'accounts:login' %}">Log in</a>.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Your profile | CareerBridge{% endblock %}
+
+{% block extra_head %}{% include "components/map_assets.html" %}{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job seeker profile</p>
+    <h1>Tell recruiters what you bring.</h1>
+    <p class="lead">
+        Add a short headline, your key skills, and your current location.
+    </p>
+</header>
+
+<section class="card form-card" aria-labelledby="profile-form-title">
+    <h2 id="profile-form-title">Profile details</h2>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert--error" role="alert">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+        {% for field in form.visible_fields %}
+            {% include "components/form_field.html" with field=field %}
+
+            {% if field.name == "location" %}
+                <section class="card location-card" aria-labelledby="location-heading">
+                    <div class="location-card__head">
+                        <h2 id="location-heading">Pin your location</h2>
+                        <span class="badge badge--muted" data-pin-badge>No pin yet</span>
+                    </div>
+                    <p class="text-muted">Click the map to drop a pin near where you live, then drag it to adjust. Only recruiters whose jobs you apply to can see it, on their applicant map. Leave it empty to keep it private.</p>
+                    <div class="map map--medium map--picker" id="location-picker"
+                         data-lat-input="{{ form.lat.auto_id }}"
+                         data-lng-input="{{ form.lng.auto_id }}"
+                         data-address-input="{{ form.location.auto_id }}"
+                         data-pin-label="Your location pin"></div>
+                    <div class="actions">
+                        <button class="button button--secondary button--small" type="button" data-find-address>Find on map</button>
+                        <button class="button button--ghost button--small" type="button" data-clear-pin>Clear pin</button>
+                        <span class="coords" data-pin-coords>Not pinned yet</span>
+                    </div>
+                    <p class="location-card__message" data-pin-message aria-live="polite" hidden></p>
+                    {% for error in form.lat.errors %}
+                        <p class="form-field__error">{{ error }}</p>
+                    {% endfor %}
+                    {% for error in form.lng.errors %}
+                        <p class="form-field__error">{{ error }}</p>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endfor %}
+
+        <div class="actions form-actions">
+        <button class="button" type="submit">Save profile</button>
+        <a class="button button--secondary"
+           href="{% url 'accounts:job_seeker_area' %}">
+            Cancel
+        </a>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block extra_body %}
+<script defer src="{% static 'js/location_picker.js' %}?v=20261016-1"></script>
+{% endblock %}

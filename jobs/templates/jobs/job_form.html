@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if job %}Edit job{% else %}Post a job{% endif %} - CareerBridge{% endblock %}
+
+{% block extra_head %}{% include "components/map_assets.html" %}{% endblock %}
+
+{% block content %}
+<h1>{% if job %}Edit: {{ job.title }}{% else %}Post a job{% endif %}</h1>
+
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert--error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+    {% for field in form.visible_fields %}
+        {% include "components/form_field.html" with field=field %}
+
+        {% if field.name == "address" %}
+            <section class="card location-card" aria-labelledby="location-heading">
+                <div class="location-card__head">
+                    <h2 id="location-heading">Office location</h2>
+                    <span class="badge badge--muted" data-pin-badge>No pin yet</span>
+                </div>
+                <p class="text-muted">Click the map to drop a pin, then drag it to fine-tune. Candidates see this pin on the job page. Leave it empty for remote roles.</p>
+                <div class="map map--medium map--picker" id="location-picker"
+                     data-lat-input="{{ form.lat.auto_id }}"
+                     data-lng-input="{{ form.lng.auto_id }}"
+                     data-address-input="{{ form.address.auto_id }}"
+                     data-pin-label="Office location pin"></div>
+                <div class="actions">
+                    <button class="button button--secondary button--small" type="button" data-find-address>Find address on map</button>
+                    <button class="button button--ghost button--small" type="button" data-clear-pin>Clear pin</button>
+                    <span class="coords" data-pin-coords>Not pinned yet</span>
+                </div>
+                <p class="location-card__message" data-pin-message aria-live="polite" hidden></p>
+                {% for error in form.lat.errors %}
+                    <p class="form-field__error">{{ error }}</p>
+                {% endfor %}
+                {% for error in form.lng.errors %}
+                    <p class="form-field__error">{{ error }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+    {% endfor %}
+
+    <div>
+        <button class="button" type="submit">{% if job %}Save changes{% else %}Publish{% endif %}</button>
+        <a class="button button--ghost" href="{% url 'jobs:mine' %}">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_body %}
+<script defer src="{% static 'js/location_picker.js' %}?v=20261016-1"></script>
+{% endblock %}

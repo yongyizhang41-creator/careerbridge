@@ -1,0 +1,102 @@
+{% load static workspace_ui %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CareerBridge connects early-career job seekers with hiring teams.">
+    <title>{% block title %}CareerBridge{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}?v=20261023-3">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% if request.user.is_authenticated %}workspace {% endif %}{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header class="site-header">
+        <div class="container site-header__inner">
+            <a class="brand" href="{% if request.user.is_authenticated %}{% url 'accounts:dashboard' %}{% else %}{% url 'accounts:login' %}{% endif %}" aria-label="CareerBridge home">
+                <span class="brand__mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M5 25V10M27 25V10M5 19C10 19 10 8 16 8S22 19 27 19M3 25H29M11 18V25M21 18V25" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span>
+                    <span class="brand__name">CareerBridge</span>
+                    <span class="brand__tagline">Build the next connection.</span>
+                </span>
+            </a>
+
+            <div class="header-account">
+                {% if request.user.is_authenticated %}
+                    <span class="header-account__role">{{ request.user.get_role_display }}</span>
+                    <span class="header-account__name">{{ request.user.first_name|default:request.user.username }}</span>
+                    <span class="avatar avatar--small" aria-hidden="true">{{ request.user.username|first }}</span>
+                {% else %}
+                    <nav class="site-nav" aria-label="Account navigation">
+                        {% nav_current request 'accounts:login' as current %}<a href="{% url 'accounts:login' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Log in</a>
+                        <a class="button button--small" href="{% url 'accounts:register' %}">Create account</a>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% if request.user.is_authenticated %}
+    <aside class="workspace-sidebar" aria-label="Workspace navigation">
+        <details class="workspace-menu" open>
+            <summary>Workspace menu</summary>
+            <nav class="workspace-nav" aria-label="Primary navigation">
+
+                    {% nav_current request 'accounts:dashboard' as current %}<a href="{% url 'accounts:dashboard' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Dashboard</a>
+                    {% if request.user.role == 'job_seeker' %}
+                        {% nav_current request 'jobs:my_applications' as current %}<a href="{% url 'jobs:my_applications' %}"{% if current %} aria-current="{{ current }}"{% endif %}>My applications</a>
+                        {% nav_current request 'jobs:search' as current %}<a href="{% url 'jobs:search' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Find jobs</a>
+                        {% nav_current request 'jobs:cart' as current %}<a href="{% url 'jobs:cart' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Job cart</a>
+                        {% nav_current request 'communications:inbox' as current %}<a href="{% url 'communications:inbox' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Messages</a>
+                        {% nav_current request 'accounts:job_seeker_area' as current %}<a href="{% url 'accounts:job_seeker_area' %}"{% if current %} aria-current="{{ current }}"{% endif %}>My profile</a>
+                    {% elif request.user.role == 'recruiter' %}
+                        {% nav_current request 'jobs:mine' as current %}<a href="{% url 'jobs:mine' %}"{% if current %} aria-current="{{ current }}"{% endif %}>My jobs</a>
+                        {% nav_current request 'communications:inbox' as current %}<a href="{% url 'communications:inbox' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Messages</a>
+                        {% nav_current request 'accounts:recruiter_area' as current %}<a href="{% url 'accounts:recruiter_area' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Recruiter area</a>
+                        {% nav_current request 'jobs:pipeline' as current %}<a href="{% url 'jobs:pipeline' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Hiring pipeline</a>
+                        {% nav_current request 'accounts:candidate_search' as current %}<a href="{% url 'accounts:candidate_search' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Find candidates</a>
+                    {% elif request.user.role == 'administrator' %}
+                        {% if request.user.is_active and request.user.is_staff %}
+                            {% if perms.accounts.view_user or perms.accounts.change_user %}
+                                {% nav_current request 'accounts:user_management' as current %}<a href="{% url 'accounts:user_management' %}"{% if current %} aria-current="{{ current }}"{% endif %}>User management</a>
+                            {% endif %}
+                        {% endif %}
+                        {% nav_current request 'jobs:moderation' as current %}<a href="{% url 'jobs:moderation' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Moderation</a>
+                        {% nav_current request 'accounts:reporting' as current %}<a href="{% url 'accounts:reporting' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Reports</a>
+                        {% nav_current request 'reports:list' as current %}<a href="{% url 'reports:list' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Content reports</a>
+                    {% endif %}
+                    <form class="workspace-logout" novalidate method="post" action="{% url 'accounts:logout' %}">
+                        {% csrf_token %}
+                        <button class="button button--ghost button--small" type="submit">Log out</button>
+                    </form>
+            </nav>
+        </details>
+        <p class="workspace-sidebar__note">A place for your next step.</p>
+    </aside>
+    {% endif %}
+
+    {% if messages %}
+        <div class="container messages" aria-label="Notifications">
+            {% for message in messages %}
+                <div class="alert{% if message.tags %} alert--{{ message.tags }}{% endif %}" role="status">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <main id="main-content" class="{% block main_class %}container page-shell{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container site-footer__inner">
+            <p><strong>CareerBridge</strong> &middot; Opportunity meets direction.</p>
+            <p class="text-muted">CS 2340 Project 2</p>
+        </div>
+    </footer>
+    {% if request.user.is_authenticated %}<script src="{% static 'js/workspace.js' %}" defer></script>{% endif %}
+    {% block extra_body %}{% endblock %}
+</body>
+</html>

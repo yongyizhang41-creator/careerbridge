@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Log in | CareerBridge{% endblock %}
+{% block main_class %}container auth-shell{% endblock %}
+
+{% block content %}
+<section class="auth-intro">
+    <p class="eyebrow">Welcome back</p>
+    <h1>Make your next connection count.</h1>
+    <p class="lead">CareerBridge gives job seekers and recruiters a shared place to discover, evaluate, and act on the right opportunities.</p>
+    <ul class="auth-intro__points">
+        <li>Keep every opportunity and candidate in context.</li>
+        <li>Move from discovery to action with less friction.</li>
+        <li>Use location-aware tools to make informed decisions.</li>
+    </ul>
+</section>
+
+<section class="card form-card" aria-labelledby="login-title">
+    <p class="eyebrow">Account access</p>
+    <h2 id="login-title">Log in</h2>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert--error" role="alert">Username or password is incorrect.</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            {% include "components/form_field.html" with field=field %}
+        {% endfor %}
+
+        {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+        {% endif %}
+
+        <button class="button" type="submit">Log in</button>
+    </form>
+
+    <p class="text-muted">No account? <a href="{% url 'accounts:register' %}">Create one now</a>.</p>
+</section>
+{% endblock %}

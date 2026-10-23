@@ -1,0 +1,25 @@
+.user-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.user-filters > div { flex: 1 1 9rem; }
+.user-filters label { display: block; margin-bottom: .4rem; font-weight: 600; }
+.user-filters input, .user-filters select { width: 100%; }
+.user-filters input, .user-filters select, .user-table select {
+    padding: .65rem .75rem;
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font: inherit;
+}
+.user-table-scroll { overflow-x: auto; }
+.user-table { width: 100%; border-collapse: collapse; text-align: left; }
+.user-table th, .user-table td { padding: .9rem .6rem; border-bottom: 1px solid var(--color-border); }
+.user-table th { color: var(--color-ink-soft); white-space: nowrap; }
+.user-table select { min-width: 10rem; }
+.user-table input[type="checkbox"] { width: 1.1rem; height: 1.1rem; }
+.user-list { margin-bottom: 1.5rem; }

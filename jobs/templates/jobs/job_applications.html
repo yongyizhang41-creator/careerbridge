@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Applicants for {{ job.title }} | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>Applicants for {{ job.title }}</h1>
+    <p class="lead">{{ job.company }}</p>
+    <div class="actions">
+        <a class="button button--secondary" href="{% url 'jobs:applicant_map' job.pk %}">View applicants on map</a>
+        <a class="button button--secondary" href="{% url 'jobs:pipeline' %}?job={{ job.pk }}">View hiring pipeline</a>
+        <a href="{% url 'jobs:mine' %}">Back to my jobs</a>
+    </div>
+</header>
+{% if job.status == 'removed' %}
+    <p class="alert">This job has been removed. Existing applications are still available for review.</p>
+{% endif %}
+<div class="stack">
+    {% for application in applications %}
+        <article class="card">
+            <h2>{{ application.applicant.get_full_name|default:application.applicant.username }}</h2>
+            <p>Status: <span class="badge badge--{{ application.status }}">{{ application.get_status_display }}</span></p>
+            <p class="text-muted">Applied {{ application.created_at|date:"M j, Y, g:i a" }}</p>
+            <div class="actions">
+                <a class="button button--secondary" href="{% url 'jobs:application_detail' application.pk %}">View profile and application</a>
+                <a href="{% url 'communications:start' application.applicant.pk %}">Message candidate</a>
+                <a href="{% url 'communications:email' application.applicant.pk %}">Email candidate</a>
+            </div>
+        </article>
+    {% empty %}
+        <section class="empty-state">
+            <h2>No applications yet</h2>
+            <p>Candidates will appear here when they apply to this job.</p>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}

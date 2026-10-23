@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Recommended jobs | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job seeker workspace</p>
+    <h1>Recommended jobs</h1>
+    <p class="lead">Discover jobs that share skills with your profile.</p>
+    <a href="{% url 'accounts:job_seeker_area' %}">Back to my workspace</a>
+</header>
+
+{% if not has_skills %}
+    <section class="empty-state">
+        <h2>Add your skills to get recommendations</h2>
+        <p>Tell us which skills you have in your profile.</p>
+        <a class="button" href="{% url 'accounts:edit_job_seeker_profile' %}">
+            Edit profile
+        </a>
+    </section>
+{% elif recommendations %}
+    <div class="stack">
+        {% for item in recommendations %}
+            <article class="card">
+                <h2>
+                    <a href="{% url 'jobs:detail' item.job.pk %}">
+                        {{ item.job.title }}
+                    </a>
+                </h2>
+                <p>{{ item.job.company }} · {{ item.job.get_remote_type_display }}</p>
+                {% if item.job.address %}
+                    <p>{{ item.job.address }}</p>
+                {% endif %}
+                <p>
+                    {{ item.score }} shared skill{{ item.score|pluralize }}:
+                    {{ item.matched_skills|join:", " }}
+                </p>
+                <a class="button button--secondary"
+                   href="{% url 'jobs:detail' item.job.pk %}">
+                    View job
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <section class="empty-state">
+        <h2>No matching jobs right now</h2>
+        <p>No available jobs share your skills after excluding jobs you already applied to.</p>
+        <a class="button" href="{% url 'jobs:search' %}">Browse jobs</a>
+    </section>
+{% endif %}
+{% endblock %}

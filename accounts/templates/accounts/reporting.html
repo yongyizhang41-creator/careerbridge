@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Reporting | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Administrator tools</p>
+    <h1>Platform reporting</h1>
+    <p><a class="button button--secondary" href="{% url 'reports:list' %}">Review content reports</a></p>
+    <p class="lead">Review platform usage at a glance, then download stable CSV datasets for deeper analysis.</p>
+</header>
+
+<section aria-labelledby="account-overview-title" class="stack stack--large">
+    <div>
+        <h2 id="account-overview-title">Account overview</h2>
+        <p class="text-muted">Counts reflect the current database at the time this page loads.</p>
+    </div>
+
+    <div class="grid grid--4">
+        <article class="card metric">
+            <span class="metric__label">All accounts</span>
+            <strong class="metric__value">{{ account_counts.total }}</strong>
+        </article>
+        <article class="card metric">
+            <span class="metric__label">Job seekers</span>
+            <strong class="metric__value">{{ account_counts.job_seekers }}</strong>
+        </article>
+        <article class="card metric">
+            <span class="metric__label">Recruiters</span>
+            <strong class="metric__value">{{ account_counts.recruiters }}</strong>
+        </article>
+        <article class="card metric">
+            <span class="metric__label">Administrators</span>
+            <strong class="metric__value">{{ account_counts.administrators }}</strong>
+        </article>
+    </div>
+
+    <div class="grid grid--3">
+        <article class="card metric">
+            <span class="metric__label">All jobs</span>
+            <strong class="metric__value">{{ job_counts.total }}</strong>
+        </article>
+        <article class="card metric">
+            <span class="metric__label">Active / removed jobs</span>
+            <strong class="metric__value">{{ job_counts.active }} / {{ job_counts.removed }}</strong>
+        </article>
+        <article class="card metric">
+            <span class="metric__label">Applications</span>
+            <strong class="metric__value">{{ application_count }}</strong>
+        </article>
+    </div>
+
+    <div class="stack">
+        {% if request.user.role == 'administrator' and request.user.is_active and request.user.is_staff %}
+            {% if perms.accounts.view_user or perms.accounts.change_user %}
+                <article class="card download-panel">
+                    <div>
+                        <span class="badge">Administrator tools</span>
+                        <h2>User management</h2>
+                        <p>Review user accounts, update roles, and activate or deactivate users.</p>
+                    </div>
+                    <a class="button" href="{% url 'accounts:user_management' %}">Manage users</a>
+                </article>
+            {% endif %}
+        {% endif %}
+        <article class="card download-panel">
+            <div>
+                <span class="badge">CSV</span>
+                <h2>User account report</h2>
+                <p>Includes user ID, username, role, active state, join time, and last-login time. Passwords, permission data, and email addresses are excluded.</p>
+            </div>
+            <a class="button" href="{% url 'accounts:export_users_csv' %}" download>Download users CSV</a>
+        </article>
+        <article class="card download-panel">
+            <div>
+                <span class="badge">CSV</span>
+                <h2>Job-post report</h2>
+                <p>Includes stable job IDs, public listing details, recruiter usernames, moderation status, and creation times.</p>
+            </div>
+            <a class="button" href="{% url 'accounts:export_jobs_csv' %}" download>Download jobs CSV</a>
+        </article>
+        <article class="card download-panel">
+            <div>
+                <span class="badge">CSV</span>
+                <h2>Application report</h2>
+                <p>Includes application events and related job IDs. Private application notes and email addresses are excluded.</p>
+            </div>
+            <a class="button" href="{% url 'accounts:export_applications_csv' %}" download>Download applications CSV</a>
+        </article>
+    </div>
+</section>
+{% endblock %}

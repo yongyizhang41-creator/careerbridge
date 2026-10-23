@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Content reports | CareerBridge{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/workflows.css' %}?v=20261015-1">{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Administrator tools</p>
+    <h1>Content reports</h1>
+    <p class="lead">Investigate concerns about users and job postings before taking action.</p>
+    <a href="{% url 'accounts:reporting' %}">Back to platform reporting</a>
+</header>
+<form method="get" class="workflow-filter">
+    <div class="form-field"><label for="report-status">Status</label><select id="report-status" name="status"><option value="">All statuses</option>{% for value, label in statuses %}<option value="{{ value }}"{% if value == selected_status %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="form-field"><label for="report-type">Reported content</label><select id="report-type" name="type"><option value="">Users and jobs</option>{% for value, label in types %}<option value="{{ value }}"{% if value == selected_type %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div class="form-field"><label for="report-query">Search reports</label><input id="report-query" name="q" value="{{ query }}"></div>
+    <button class="button" type="submit">Filter</button>
+</form>
+<p>{{ page_obj.paginator.count }} report{{ page_obj.paginator.count|pluralize }}</p>
+<div class="stack">
+    {% for report in page_obj %}
+        <article class="card report-card">
+            <span class="badge">{{ report.get_status_display }}</span>
+            <h2><a href="{% url 'reports:detail' report.pk %}">#{{ report.pk }} &middot; {{ report.target_label }}</a></h2>
+            <p>{{ report.get_target_type_display }} &middot; {{ report.get_reason_display }}</p>
+            <p class="text-muted">Reported {{ report.created_at|date:"M j, Y, g:i a" }} by {{ report.reporter.username|default:"Deleted account" }}</p>
+            <p>{{ report.details|truncatechars:180 }}</p>
+        </article>
+    {% empty %}
+        <section class="empty-state"><h2>No reports found</h2><p>Reports matching these filters will appear here.</p></section>
+    {% endfor %}
+</div>
+<nav class="workflow-pagination" aria-label="Report pages">
+    {% if page_obj.has_previous %}<a href="?status={{ selected_status|urlencode }}&amp;type={{ selected_type|urlencode }}&amp;q={{ query|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?status={{ selected_status|urlencode }}&amp;type={{ selected_type|urlencode }}&amp;q={{ query|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</nav>
+{% endblock %}

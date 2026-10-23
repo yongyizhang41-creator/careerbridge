@@ -1,0 +1,15 @@
+{% load workspace_ui %}
+<div class="form-field{% if field.errors %} form-field--invalid{% endif %}{% if field.field.widget.input_type == 'checkbox' %} form-field--checkbox{% endif %}">
+    {% if field.field.widget.input_type == 'checkbox' %}
+        <div class="form-check-row">{{ field|accessible_field }}<label for="{{ field.id_for_label }}">{{ field.label }}</label></div>
+    {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field|accessible_field }}
+    {% endif %}
+    {% if field.help_text %}
+        <div class="form-field__help" id="{{ field.auto_id }}_helptext">{{ field.help_text|safe }}</div>
+    {% endif %}
+    {% for error in field.errors %}
+        <p class="form-field__error" id="{{ field.auto_id }}_error_{{ forloop.counter }}">{{ error }}</p>
+    {% endfor %}
+</div>

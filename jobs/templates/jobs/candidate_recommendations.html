@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Recommended candidates | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>Recommended candidates</h1>
+    <p class="lead">{{ job.title }} at {{ job.company }}</p>
+    <a href="{% url 'jobs:mine' %}">Back to my jobs</a>
+</header>
+
+{% if not has_skills %}
+    <section class="empty-state">
+        <h2>Add skills to this job</h2>
+        <p>Job skills are needed to find matching candidates.</p>
+        <a class="button" href="{% url 'jobs:edit' job.pk %}">Edit job</a>
+    </section>
+{% elif recommendations %}
+    <div class="stack">
+        {% for item in recommendations %}
+            <article class="card">
+                <h2>{{ item.profile.user.get_full_name|default:item.profile.user.username }}</h2>
+                <p>{{ item.profile.headline|default:"No headline provided." }}</p>
+                <p>
+                    {{ item.score }} shared skill{{ item.score|pluralize }}:
+                    {{ item.matched_skills|join:", " }}
+                </p>
+                <a class="button button--secondary"
+                   href="{% url 'jobs:candidate_profile' job.pk item.profile.pk %}">
+                    View profile
+                </a>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <section class="empty-state">
+        <h2>No matching candidates right now</h2>
+        <p>No discoverable candidates share this job's skills after excluding existing applicants.</p>
+        <a class="button button--secondary"
+           href="{% url 'jobs:job_applications' job.pk %}">
+            View existing applicants
+        </a>
+    </section>
+{% endif %}
+{% endblock %}

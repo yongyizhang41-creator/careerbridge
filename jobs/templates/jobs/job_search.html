@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Find jobs - CareerBridge{% endblock %}
+{% block extra_head %}{% if display == 'map' %}{% include "components/map_assets.html" %}{% endif %}{% endblock %}
+
+{% block content %}
+<header class="page-heading job-search-heading">
+    <h1>Find jobs</h1>
+    <p class="lead">Search for your next role, in a list or on the map.</p>
+</header>
+
+<form method="get" action="{% url 'jobs:search' %}" class="card job-search-filters" novalidate>
+    <input type="hidden" name="view" value="{{ display }}">
+    <div class="job-search-primary">
+        {% include "components/form_field.html" with field=form.title %}
+        {% include "components/form_field.html" with field=form.skills %}
+        {% include "components/form_field.html" with field=form.location %}
+        <button class="button job-search-submit" type="submit">Search jobs</button>
+    </div>
+    <div class="job-search-secondary">
+        <details class="job-advanced"{% if form.salary_min.value or form.salary_max.value or form.remote_type.value or form.visa_sponsorship.value or form.errors %} open{% endif %}>
+            <summary>More filters{% if form.salary_min.value or form.salary_max.value or form.remote_type.value or form.visa_sponsorship.value %}<span class="job-advanced__active">Filters set</span>{% endif %}</summary>
+            <div class="job-advanced__fields">
+                {% include "components/form_field.html" with field=form.salary_min %}
+                {% include "components/form_field.html" with field=form.salary_max %}
+                {% include "components/form_field.html" with field=form.remote_type %}
+                <div class="job-search-check">
+                    {{ form.visa_sponsorship }}
+                    <label for="{{ form.visa_sponsorship.id_for_label }}">{{ form.visa_sponsorship.label }}</label>
+                </div>
+            </div>
+        </details>
+        <a class="job-search-clear" href="{% url 'jobs:search' %}{% if display == 'map' %}?view=map{% endif %}">Clear filters</a>
+    </div>
+</form>
+
+<div class="job-results-toolbar">
+    <p class="text-muted" role="status">{% if form.errors %}Check your search filters{% else %}{{ jobs|length }} job{{ jobs|length|pluralize }} found{% endif %}</p>
+    <nav class="job-view-switch" aria-label="Job results view">
+        <a href="{{ list_url }}"{% if display == 'list' %} aria-current="page"{% endif %}>List</a>
+        <a href="{{ map_url }}"{% if display == 'map' %} aria-current="page"{% endif %}>Map</a>
+    </nav>
+</div>
+
+{% if form.errors %}
+    <p class="alert alert--error" role="alert">Please fix the filters above.</p>
+{% elif display == 'map' %}
+    {% include "jobs/_map_results.html" %}
+{% else %}
+    <ul class="job-results" aria-label="Matching jobs">
+    {% for job in jobs %}
+        <li class="card job-result">
+            <div class="job-result__details">
+                <h2><a href="{% url 'jobs:detail' job.pk %}">{{ job.title }}</a></h2>
+                <p class="job-result__company">{{ job.company }}</p>
+                {% if job.address %}<p class="job-result__location">{{ job.address }}</p>{% endif %}
+                <div class="job-result__meta">
+                    <span class="job-result__salary">{% if job.salary_min != None and job.salary_max != None %}${{ job.salary_min|floatformat:"0g" }} – ${{ job.salary_max|floatformat:"0g" }}{% elif job.salary_min != None %}From ${{ job.salary_min|floatformat:"0g" }}{% elif job.salary_max != None %}Up to ${{ job.salary_max|floatformat:"0g" }}{% else %}<span class="text-muted">Salary not listed</span>{% endif %}</span>
+                    <span class="badge badge--muted">{{ job.get_remote_type_display }}</span>
+                    {% if job.visa_sponsorship %}<span class="badge badge--muted">Visa sponsorship</span>{% endif %}
+                </div>
+            </div>
+            {% if request.user.role == 'job_seeker' %}
+                <form method="post" action="{% url 'jobs:cart_add' job.pk %}" novalidate>
+                    {% csrf_token %}
+                    <button class="button button--secondary button--small" type="submit">Add to job cart</button>
+                </form>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li class="card job-search-empty">
+            <h2>No jobs match these filters</h2>
+            <p class="text-muted">Try a broader title, fewer skills, or a different location.</p>
+            <a href="{% url 'jobs:search' %}">Clear filters</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+{% endblock %}
+
+{% block extra_body %}
+{% if display == 'map' and not form.errors %}
+<script defer src="{% static 'js/job_map.js' %}?v=20261016-2"></script>
+{% endif %}
+{% endblock %}

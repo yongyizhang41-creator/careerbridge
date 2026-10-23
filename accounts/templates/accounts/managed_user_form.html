@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{% if creating %}Add user{% else %}Edit user{% endif %} | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Administrator tools</p>
+    <h1>{% if creating %}Add user{% else %}Edit {{ managed_user.username }}{% endif %}</h1>
+    <p>Manage account details, role, and active status. Staff access and system permissions are managed separately in Django Admin.</p>
+    {% if not creating %}<p class="text-muted">Your own account and protected superusers are read-only here.</p>{% endif %}
+</header>
+<section class="card">
+    <form method="post" class="stack">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}{% include "components/form_field.html" with field=field %}{% endfor %}
+        <div class="actions"><button class="button" type="submit">{% if creating %}Create user{% else %}Save user{% endif %}</button><a href="{% url 'accounts:user_management' %}">Back to users</a></div>
+    </form>
+</section>
+{% endblock %}

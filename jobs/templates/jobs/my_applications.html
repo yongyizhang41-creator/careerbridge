@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}My applications | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job seeker workspace</p>
+    <h1>My applications</h1>
+    <p class="lead">Follow your applications from Applied to Review, Interview, Offer, and Closed.</p>
+    <a href="{% url 'accounts:job_seeker_area' %}">Back to job seeker area</a>
+</header>
+<div class="stack">
+    {% for application in applications %}
+        <article class="card">
+            <h2>{{ application.job.title }}</h2>
+            <p>{{ application.job.company }}</p>
+            <p>Status: <span class="badge badge--{{ application.status }}">{{ application.get_status_display }}</span></p>
+            <p class="text-muted">Applied {{ application.created_at|date:"M j, Y, g:i a" }}</p>
+            {% if application.note %}
+                <h3>Your personalized note</h3>
+                {{ application.note|linebreaks }}
+            {% endif %}
+            {% if application.job.status == 'active' %}
+                <a href="{% url 'jobs:detail' application.job.pk %}">View job</a>
+            {% else %}
+                <p class="text-muted">This job is no longer available. Your application record is still shown here.</p>
+            {% endif %}
+        </article>
+    {% empty %}
+        <section class="empty-state">
+            <h2>No applications yet</h2>
+            <p>Apply to a job to start tracking your progress here.</p>
+            <a class="button" href="{% url 'jobs:search' %}">Find jobs</a>
+        </section>
+    {% endfor %}
+</div>
+{% endblock %}

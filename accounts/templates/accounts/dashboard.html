@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | CareerBridge{% endblock %}
+{% block content %}
+<div class="dashboard">
+<header class="page-heading dashboard-heading">
+    <p class="eyebrow">Your workspace</p>
+    <h1>Welcome back, {{ request.user.first_name|default:request.user.username }}.</h1>
+    <p class="lead">{% if request.user.role == "job_seeker" %}Find your next opportunity. Make your next move.{% elif request.user.role == "recruiter" %}Good connections start with your next hire.{% else %}Keep your community moving in the right direction.{% endif %}</p>
+</header>
+<div class="dashboard-layout">
+<section class="dashboard-feature" aria-labelledby="next-action-title">
+    <span class="badge">{{ request.user.get_role_display }}</span>
+    {% if request.user.role == "job_seeker" %}
+        <h2 id="next-action-title">A new chapter<br>starts with a search.</h2>
+        <p>Explore roles that fit your skills, interests, and where you want to go.</p>
+        <a class="button" href="{% url 'jobs:search' %}">Find jobs</a>
+    {% elif request.user.role == "recruiter" %}
+        <h2 id="next-action-title">Your next hire.<br>A new possibility.</h2>
+        <p>Review your openings and the people ready to make a difference.</p>
+        <a class="button" href="{% url 'jobs:mine' %}">Manage my jobs</a>
+    {% elif request.user.role == "administrator" %}
+        <h2 id="next-action-title">A clearer view<br>of your community.</h2>
+        <p>Review account and hiring activity with the platform reporting tools.</p>
+        <a class="button" href="{% url 'accounts:reporting' %}">View reports</a>
+    {% else %}
+        <h2 id="next-action-title">Your account is ready.</h2>
+        <p>Contact an administrator if you need a different role.</p>
+    {% endif %}
+    <svg class="dashboard-bridge" viewBox="0 0 460 180" fill="none" aria-hidden="true"><path d="M20 150H440M70 150V35M390 150V35M70 65C140 65 150 15 230 15S320 65 390 65M70 65C130 65 150 125 230 125S330 65 390 65M130 85V150M180 115V150M230 125V150M280 115V150M330 85V150" stroke="currentColor" stroke-width="3"/></svg>
+</section>
+<section class="card dashboard-account" aria-labelledby="account-summary-title">
+    <div class="avatar" aria-hidden="true">{{ request.user.username|first }}</div>
+    <h2 id="account-summary-title">Your account</h2>
+    <p class="dashboard-account__name">{{ request.user.first_name|default:request.user.username }}</p>
+    <p class="text-muted">{{ request.user.get_role_display }}</p>
+
+    {% if request.user.role == "job_seeker" %}<a class="button button--secondary" href="{% url 'accounts:job_seeker_area' %}">View my profile</a>{% elif request.user.role == "recruiter" %}<a class="button button--secondary" href="{% url 'accounts:recruiter_area' %}">Open recruiter area</a>{% endif %}
+</section>
+</div>
+<section class="dashboard-shortcuts" aria-labelledby="shortcuts-title">
+    <h2 id="shortcuts-title">Keep things moving</h2>
+    <div class="grid grid--3">
+    {% if request.user.role == "job_seeker" %}
+        <a class="workspace-shortcut" href="{% url 'jobs:my_applications' %}"><h3>My applications</h3><p>Check where you stand and what comes next.</p><span>View applications</span></a>
+        <a class="workspace-shortcut" href="{% url 'jobs:recommendations' %}"><h3>Recommended jobs</h3><p>Explore opportunities matched to your skills.</p><span>Explore matches</span></a>
+        <a class="workspace-shortcut" href="{% url 'jobs:cart' %}"><h3>Job cart</h3><p>Revisit and compare the roles you collected.</p><span>Open job cart</span></a>
+    {% elif request.user.role == "recruiter" %}
+        <a class="workspace-shortcut" href="{% url 'jobs:create' %}"><h3>Post a job</h3><p>Put your next opening in front of candidates.</p><span>Create a job</span></a>
+        <a class="workspace-shortcut" href="{% url 'jobs:pipeline' %}"><h3>Hiring pipeline</h3><p>Organize applicants through each hiring stage.</p><span>View pipeline</span></a>
+        <a class="workspace-shortcut" href="{% url 'accounts:candidate_search' %}"><h3>Find candidates</h3><p>Look for the skills your team needs.</p><span>Search candidates</span></a>
+    {% elif request.user.role == "administrator" %}
+        <a class="workspace-shortcut" href="{% url 'jobs:moderation' %}"><h3>Job moderation</h3><p>Review the opportunities on CareerBridge.</p><span>Review jobs</span></a>
+        <a class="workspace-shortcut" href="{% url 'reports:list' %}"><h3>Content reports</h3><p>Investigate reports submitted by the community.</p><span>Review reports</span></a>
+        <a class="workspace-shortcut" href="{% url 'accounts:reporting' %}"><h3>Platform reports</h3><p>Review activity and export reporting data.</p><span>View reports</span></a>
+    {% endif %}
+    </div>
+</section>
+</div>
+{% endblock %}

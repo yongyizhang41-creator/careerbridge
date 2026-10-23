@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Find candidates | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>{% if saved_search %}{{ saved_search.name }}{% else %}Find candidates{% endif %}</h1>
+    <p class="lead">Search job seekers by skills, location, and the projects they have built.</p>
+</header>
+
+<form method="get" action="{% url 'accounts:candidate_search' %}" novalidate>
+    {% for field in form %}
+        {% include "components/form_field.html" with field=field %}
+    {% endfor %}
+    <div>
+        <button class="button" type="submit">Search</button>
+        <a class="button button--ghost" href="{% url 'accounts:candidate_search' %}">Clear</a>
+    </div>
+</form>
+
+{% if form.errors %}
+    <p class="alert alert--error">Please fix the filters above.</p>
+{% else %}
+    <p class="text-muted">{{ profiles|length }} candidate{{ profiles|length|pluralize }} found</p>
+
+    {% if form.is_bound and not saved_search %}
+        <form method="post" action="{% url 'accounts:save_candidate_search' %}">
+            {% csrf_token %}
+            <input type="hidden" name="skills" value="{{ form.cleaned_data.skills }}">
+            <input type="hidden" name="location" value="{{ form.cleaned_data.location }}">
+            <input type="hidden" name="project" value="{{ form.cleaned_data.project }}">
+            <label for="saved-search-name">Save this search</label>
+            <input id="saved-search-name" name="name" maxlength="100" required placeholder="e.g. Atlanta Python devs">
+            <button class="button button--secondary" type="submit">Save search</button>
+        </form>
+    {% endif %}
+
+    {% for profile in profiles %}
+        <article class="card profile-section">
+            <h2>
+                {{ profile.user.username }}
+                {% if profile.pk in new_ids %}<span class="badge badge--accent">New</span>{% endif %}
+            </h2>
+            <div class="actions">
+                <a class="button button--secondary" href="{% url 'communications:start' profile.user.pk %}">Message candidate</a>
+                <a href="{% url 'communications:email' profile.user.pk %}">Email candidate</a>
+            </div>
+            {% if profile.headline %}<p>{{ profile.headline }}</p>{% endif %}
+            {% if profile.location %}<p class="text-muted">{{ profile.location }}</p>{% endif %}
+
+            {% if profile.skill_list %}
+                <p>
+                    {% for skill in profile.skill_list %}
+                        <span class="badge">{{ skill }}</span>
+                    {% endfor %}
+                </p>
+            {% endif %}
+
+            {% for project in profile.projects.all %}
+                <div class="profile-record">
+                    <h3>{{ project.title }}</h3>
+                    {% if project.description %}
+                        <p>{{ project.description|truncatewords:40 }}</p>
+                    {% endif %}
+                    {% if project.url|slice:':8' == 'https://' or project.url|slice:':7' == 'http://' %}
+                        <p><a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">View project</a></p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-muted">No projects listed.</p>
+            {% endfor %}
+        </article>
+    {% empty %}
+        <p>No candidates match these filters.</p>
+    {% endfor %}
+{% endif %}
+{% endblock %}

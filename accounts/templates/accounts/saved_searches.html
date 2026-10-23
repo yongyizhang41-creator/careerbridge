@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Saved searches | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Recruiter workspace</p>
+    <h1>Saved searches</h1>
+    <p class="lead">Candidates who start matching a saved search are flagged as new.</p>
+</header>
+
+<p><a class="button" href="{% url 'accounts:candidate_search' %}">New candidate search</a></p>
+
+{% for saved in searches %}
+    <article class="card profile-section">
+        <h2>
+            {{ saved.name }}
+            {% if saved.new_count %}
+                <span class="badge badge--accent">{{ saved.new_count }} new</span>
+            {% endif %}
+        </h2>
+        <p class="text-muted">
+            {% if saved.skills %}Skills: {{ saved.skills }}. {% endif %}
+            {% if saved.location %}Location: {{ saved.location }}. {% endif %}
+            {% if saved.project %}Project: {{ saved.project }}.{% endif %}
+        </p>
+        <p>{{ saved.total_count }} matching candidate{{ saved.total_count|pluralize }}</p>
+
+        <div class="record-actions">
+            <a class="button button--small" href="{% url 'accounts:saved_search_detail' saved.pk %}">View matches</a>
+            <form method="post"
+                  action="{% url 'accounts:delete_saved_search' saved.pk %}"
+                  onsubmit="return confirm('Delete this saved search?');">
+                {% csrf_token %}
+                <button class="button button--danger button--small" type="submit">Delete</button>
+            </form>
+        </div>
+    </article>
+{% empty %}
+    <p>You have no saved searches yet. Run a candidate search and save it to get notified about new matches.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_editing %}Edit{% else %}Add{% endif %} professional link | CareerBridge{% endblock %}
+
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Job seeker profile</p>
+    <h1>{% if is_editing %}Edit{% else %}Add{% endif %} a professional link</h1>
+    <p class="lead">
+        {% if is_editing %}
+            Update this professional link on your profile.
+        {% else %}
+            Share your portfolio, LinkedIn, GitHub, or another professional page.
+        {% endif %}
+    </p>
+</header>
+
+<section class="card form-card" aria-labelledby="professional-link-form-title">
+    <h2 id="professional-link-form-title">Link details</h2>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert--error" role="alert">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% for field in form %}
+            {% include "components/form_field.html" with field=field %}
+        {% endfor %}
+
+        <div class="actions form-actions">
+        <button class="button" type="submit">
+            {% if is_editing %}Save changes{% else %}Add link{% endif %}
+        </button>
+        <a
+            class="button button--secondary"
+            href="{% url 'accounts:job_seeker_area' %}"
+        >
+            Cancel
+        </a>
+        </div>
+    </form>
+</section>
+{% endblock %}

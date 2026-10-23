@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Candidate application | CareerBridge{% endblock %}
+{% block content %}
+<header class="page-heading">
+    <p class="eyebrow">Candidate review</p>
+    <h1>{{ application.applicant.get_full_name|default:application.applicant.username }}</h1>
+    <p class="lead">Application for {{ application.job.title }} at {{ application.job.company }}</p>
+    <div class="actions">
+        <a class="button" href="{% url 'communications:start' application.applicant.pk %}">Message candidate</a>
+        <a class="button button--secondary" href="{% url 'communications:email' application.applicant.pk %}">Email candidate</a>
+        <a href="{% url 'jobs:job_applications' application.job.pk %}">Back to applicants</a>
+        <a href="{% url 'jobs:pipeline' %}?job={{ application.job.pk }}">Hiring pipeline</a>
+        <a href="{% url 'reports:user' application.applicant_id %}">Report candidate</a>
+    </div>
+</header>
+<div class="grid grid--2 application-review">
+    <section class="card" aria-labelledby="profile-heading">
+        <h2 id="profile-heading">Candidate profile</h2>
+        {% if profile %}
+            {% include "jobs/components/profile_details.html" with profile=profile only %}
+        {% else %}
+            <p>This candidate has not created a profile yet. Their application is available on this page.</p>
+        {% endif %}
+    </section>
+    <section class="card" aria-labelledby="application-heading">
+        <h2 id="application-heading">Application details</h2>
+        <p>Applied {{ application.created_at|date:"M j, Y, g:i a" }}</p>
+        <p>Status: <span class="badge badge--{{ application.status }}">{{ application.get_status_display }}</span></p>
+        <h3>Personalized note</h3>
+        {% if application.note %}
+            {{ application.note|linebreaks }}
+        {% else %}
+            <p>No personalized note included.</p>
+        {% endif %}
+        <h3>Update application status</h3>
+        <p>The candidate can see this status in My applications.</p>
+        <form method="post" action="{% url 'jobs:application_status' application.pk %}">
+            {% csrf_token %}
+            {% include "components/form_field.html" with field=status_form.status %}
+            <button class="button" type="submit">Save status</button>
+        </form>
+    </section>
+</div>
+{% endblock %}
