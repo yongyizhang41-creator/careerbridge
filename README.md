@@ -1,6 +1,6 @@
 # CareerBridge
 
-CareerBridge is a Django web application that connects early-career job seekers with recruiters, developed by a five-person team for Georgia Tech CS 2340 Project 2.
+CareerBridge is a Django web application that connects early-career job seekers with recruiters.
 
 ## Tech Stack
 
