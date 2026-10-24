@@ -19,7 +19,7 @@ def nav_current(request, destination):
             "accounts:add_professional_link", "accounts:edit_professional_link",
             "accounts:add_project", "accounts:edit_project",
         },
-        "accounts:candidate_search": {"accounts:saved_searches", "accounts:saved_search_detail"},
+        "accounts:saved_searches": {"accounts:saved_search_detail"},
         "accounts:user_management": {"accounts:user_create", "accounts:user_edit", "accounts:user_delete"},
         "reports:list": {"reports:detail"},
         "jobs:cart": {"jobs:cart_compare"},

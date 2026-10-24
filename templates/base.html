@@ -53,7 +53,7 @@
                     {% elif request.user.role == 'recruiter' %}
                         {% nav_current request 'jobs:mine' as current %}<a href="{% url 'jobs:mine' %}"{% if current %} aria-current="{{ current }}"{% endif %}>My jobs</a>
                         {% nav_current request 'communications:inbox' as current %}<a href="{% url 'communications:inbox' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Messages</a>
-                        {% nav_current request 'accounts:recruiter_area' as current %}<a href="{% url 'accounts:recruiter_area' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Recruiter area</a>
+                        {% nav_current request 'accounts:saved_searches' as current %}<a href="{% url 'accounts:saved_searches' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Saved search</a>
                         {% nav_current request 'jobs:pipeline' as current %}<a href="{% url 'jobs:pipeline' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Hiring pipeline</a>
                         {% nav_current request 'accounts:candidate_search' as current %}<a href="{% url 'accounts:candidate_search' %}"{% if current %} aria-current="{{ current }}"{% endif %}>Find candidates</a>
                     {% elif request.user.role == 'administrator' %}

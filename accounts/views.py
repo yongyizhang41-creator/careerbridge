@@ -109,14 +109,7 @@ def edit_job_seeker_profile(request):
 
 @role_required(User.Role.RECRUITER)
 def recruiter_area(request):
-    new_matches = sum(
-        _new_matches(saved).count() for saved in request.user.saved_searches.all()
-    )
-    return render(
-        request,
-        "accounts/recruiter_area.html",
-        {"new_matches": new_matches},
-    )
+    return redirect("accounts:saved_searches")
 
 
 @role_required(User.Role.ADMINISTRATOR)

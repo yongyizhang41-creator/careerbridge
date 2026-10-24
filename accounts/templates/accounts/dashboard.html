@@ -34,7 +34,7 @@
     <p class="dashboard-account__name">{{ request.user.first_name|default:request.user.username }}</p>
     <p class="text-muted">{{ request.user.get_role_display }}</p>
 
-    {% if request.user.role == "job_seeker" %}<a class="button button--secondary" href="{% url 'accounts:job_seeker_area' %}">View my profile</a>{% elif request.user.role == "recruiter" %}<a class="button button--secondary" href="{% url 'accounts:recruiter_area' %}">Open recruiter area</a>{% endif %}
+    {% if request.user.role == "job_seeker" %}<a class="button button--secondary" href="{% url 'accounts:job_seeker_area' %}">View my profile</a>{% elif request.user.role == "recruiter" %}<a class="button button--secondary" href="{% url 'accounts:saved_searches' %}">Saved search</a>{% endif %}
 </section>
 </div>
 <section class="dashboard-shortcuts" aria-labelledby="shortcuts-title">
