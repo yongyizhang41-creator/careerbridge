@@ -1,24 +1,44 @@
 # CareerBridge
 
-CareerBridge is a Django web application that connects early-career job seekers with recruiters. It gives job seekers a place to present their experience and find relevant opportunities, helps recruiters publish roles, and provides administrators with tools for platform oversight and reporting.
+CareerBridge is a Django web application that connects early-career job seekers with recruiters, developed by a five-person team for Georgia Tech CS 2340 Project 2.
 
-This repository is being developed by a five-person team for Georgia Tech CS 2340 Project 2.
+## Tech Stack
 
-## Project vision
+| Layer | Technologies |
+| --- | --- |
+| Backend | Python 3; Django 5.2.17; Django ORM, forms, session authentication, and role-based authorization |
+| Frontend | Server-rendered Django templates, HTML, CSS, and vanilla JavaScript |
+| Database | SQLite by default locally; Neon PostgreSQL through `DATABASE_URL` in production, using psycopg and dj-database-url |
+| Maps | MapLibre GL JS 5, OpenFreeMap tiles, OpenStreetMap Nominatim address search, and browser geolocation |
+| Deployment | Render, Gunicorn, and WhiteNoise for compressed, versioned static files |
 
-Early-career candidates often struggle to find roles that match their skills, interests, location preferences, and practical constraints. Recruiters face the complementary problem of finding and evaluating suitable applicants across large candidate pools.
+## Architecture
 
-CareerBridge is designed around three roles:
+CareerBridge is a server-rendered Django monolith. The browser requests pages and submits forms; Django routes requests to views, checks authentication and permissions, reads or writes records through the ORM, and renders templates. JavaScript adds map interactions and email-client handoff.
 
-- **Job Seekers** create professional profiles, discover jobs, apply, and track their progress.
-- **Recruiters** publish openings, find candidates, and manage applicants.
-- **Administrators** manage users, moderate content, investigate reports, and export platform data.
+```text
+Browser (HTML / CSS / JavaScript)
+  | HTTP requests and form submissions
+  v
+Django (config/ URLs, settings, middleware)
+  |-- accounts/        Users, roles, profiles, candidate search, saved searches, CSV exports
+  |-- jobs/            Job postings, applications, cart, pipeline, maps, recommendations
+  |-- communications/  Private conversations and candidate email composition
+  |-- reports/         User/job reports and administrator review
+  |-- templates/       Shared layout and reusable components
+  |-- static/          CSS, JavaScript, and map interactions
+  v
+Django ORM --> SQLite (local) / Neon PostgreSQL (production)
 
-The platform combines professional profiles, job search and applications, hiring pipelines, communication, recommendations, administration, and map-based discovery.
+Browser --> MapLibre + OpenFreeMap / Nominatim
+Browser --> Recruiter's email client (mailto)
+```
+
+A custom `User` model holds the role. Job seekers have a profile with education, work experience, projects, and professional links. Recruiters own jobs; applications connect job seekers to jobs and store hiring status. Conversations connect a recruiter and candidate and contain their private messages. Views enforce ownership, role access, and profile visibility.
 
 ## Features
 
-CareerBridge provides a complete role-based recruitment workflow built around the following capabilities.
+CareerBridge supports three roles: Job Seeker, Recruiter, and Administrator. The original user-story IDs and capabilities are retained below.
 
 ### Job Seeker
 
@@ -59,66 +79,24 @@ CareerBridge provides a complete role-based recruitment workflow built around th
 | US23 | Export platform data as CSV |
 | US24 | Review reports about users or job postings |
 
-## Core workflows
+US15 opens a prefilled message in the recruiter's configured email client using `mailto:`. The recruiter selects the sending account and sends the email there; CareerBridge does not deliver it through a server-side email service. US16 displays new-match counts and highlights new candidates when saved searches are viewed; it does not send background email or push notifications. Recommendations use deterministic skill matching.
 
-The application connects the three roles through these end-to-end workflows:
+## Setup Instructions
 
-```text
-Job Seeker:    Register → Create Profile → Search Jobs → Apply → Track Application
-Recruiter:     Post Job → Set Office Location → View Applicants
-Administrator: Manage Users → Moderate Jobs → Export Data
-```
+### 1. Clone the repository
 
-These workflows share a common account foundation with registration, authentication, role-based authorization, and dedicated workspaces for each user type.
-
-## Domain model
-
-The core data relationships are:
-
-```text
-User
-├── role
-├── JobSeekerProfile (one-to-one, for job seekers)
-│   ├── Education (one-to-many)
-│   ├── WorkExperience (one-to-many)
-│   └── ProfessionalLink (one-to-many)
-├── Job (one-to-many, for recruiters)
-├── Application (one-to-many, for job seekers)
-└── Conversation (one-to-many, as recruiter or candidate)
-
-Job
-└── Application (one-to-many)
-
-Conversation
-└── Message (one-to-many, private to its recruiter and candidate)
-```
-
-Each `(job, applicant)` pair is unique, so a job seeker cannot create duplicate applications for the same job.
-
-## Technology stack
-
-- Python 3
-- Django 5.2.17
-- SQLite for local development
-- Django templates
-- HTML and CSS
-- MapLibre GL JS 5 (loaded from jsDelivr) with OpenFreeMap map tiles for the job maps; no API key needed
-- OpenStreetMap Nominatim for turning a job's address into a map pin, called from the browser
-
-## Local setup
-
-### 1. Clone and enter the repository
+Use an account with access to the private repository:
 
 ```bash
-git clone <repository-url>
-cd ProjectTwo
+git clone https://github.com/yongyizhang41-creator/careerbridge-private.git
+cd careerbridge-private
 ```
-
-Replace `<repository-url>` with the team's Git repository URL.
 
 ### 2. Create and activate a virtual environment
 
-macOS or Linux:
+Python 3.12 matches the deployment configuration.
+
+macOS / Linux:
 
 ```bash
 python3 -m venv .venv
@@ -128,113 +106,51 @@ source .venv/bin/activate
 Windows PowerShell:
 
 ```powershell
-py -m venv .venv
+py -3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-### 3. Install dependencies
+### 3. Install dependencies and initialize the database
+
+With the virtual environment active:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
+python manage.py migrate
+python manage.py check
 ```
 
-On Windows, use `py -m pip` if `python3` is unavailable.
+Local development uses SQLite automatically when `DATABASE_URL` is unset. No external database or email credentials are needed for local startup.
 
-### 4. Apply database migrations
+### 4. Start the application
 
 ```bash
-python3 manage.py migrate
+python manage.py runserver
 ```
 
-### 5. Run the development server
+Open [registration](http://127.0.0.1:8000/accounts/register/) to create a Job Seeker or Recruiter account, or [sign in](http://127.0.0.1:8000/accounts/login/). Stop the server with `Ctrl+C`.
+
+Maps and address search require internet access. Distance filtering requires location permission or a location selected on the map. Email composition requires a configured email client for `mailto:` links.
+
+### 5. Create an administrator (optional)
 
 ```bash
-python3 manage.py runserver
+python manage.py createsuperuser
 ```
 
-Open <http://127.0.0.1:8000/accounts/register/> to create a job seeker or recruiter account. Stop the server with `Ctrl+C`.
+Sign in at [Django Admin](http://127.0.0.1:8000/admin/), open the user record, and set its CareerBridge role to **Administrator**. Django's staff/superuser flags control Django Admin access; the application role controls administrator workspaces, moderation, and reports.
 
-## Administrator setup
+### 6. Production deployment
 
-Create a Django superuser:
+The repository includes `render.yaml` for Render and `build.sh` to install dependencies, collect static assets, and apply migrations. Gunicorn runs `config.wsgi:application`; WhiteNoise serves static files.
 
-```bash
-python3 manage.py createsuperuser
-```
+Configure these values in the hosting environment:
 
-Then:
+| Variable | Purpose |
+| --- | --- |
+| `DJANGO_SECRET_KEY` | Production secret key; generated by the Render Blueprint |
+| `DJANGO_DEBUG` | Set to `False` in production |
+| `DATABASE_URL` | Neon PostgreSQL connection string; the application requires TLS |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated hostnames when needed; Render's external hostname is added automatically |
 
-1. Open <http://127.0.0.1:8000/admin/>.
-2. Sign in with the superuser account.
-3. Open that user record and set its CareerBridge role to **Administrator**.
-
-Django's `is_staff`/`is_superuser` flags control access to Django Admin, while the CareerBridge `role` field controls access to the application's administrator reports and moderation pages.
-
-## Main application routes
-
-| Route | Purpose | Access |
-| --- | --- | --- |
-| `/accounts/register/` | Create a job seeker or recruiter account | Public |
-| `/accounts/login/` | Sign in | Public |
-| `/accounts/dashboard/` | Shared account dashboard | Authenticated users |
-| `/accounts/job-seeker/` | View and build a job seeker profile | Job seeker |
-| `/accounts/recruiter/` | Recruiter workspace | Recruiter |
-| `/jobs/` | Search active jobs with List/Map views | Authenticated users |
-| `/jobs/map/` | Redirect to the Find jobs map view | Authenticated users |
-| `/jobs/new/` | Create a job posting | Recruiter |
-| `/jobs/mine/` | View owned job postings | Recruiter |
-| `/jobs/moderation/` | Remove or restore job postings | Administrator |
-| `/messages/` | View private recruiter-candidate conversations | Job seeker or recruiter |
-| `/messages/candidates/<id>/email/` | Compose and send an email to a candidate | Recruiter |
-| `/accounts/reports/` | View metrics and download CSV reports | Administrator |
-| `/admin/` | Manage users and Django data | Staff users |
-
-## Project structure
-
-```text
-ProjectTwo/
-├── accounts/               # Users, authentication, profiles, reports, and role access
-│   ├── migrations/         # Account and profile schema history
-│   └── templates/accounts/ # Account and profile pages
-├── jobs/                   # Jobs, applications, search, and moderation
-│   ├── migrations/         # Job and application schema history
-│   └── templates/jobs/     # Job-related pages
-├── communications/         # Private recruiter-candidate conversations and messages
-├── config/                 # Django settings and root URL configuration
-├── static/css/app.css      # Shared visual design
-├── templates/              # Shared base template and components
-├── manage.py               # Django command-line entry point
-└── requirements.txt        # Python dependencies
-```
-
-## Authorization and data-safety notes
-
-- Anonymous users are redirected to the login page when authentication is required.
-- Role-protected views return HTTP 403 when the signed-in user has the wrong role.
-- Recruiters can edit only jobs they own.
-- Only a conversation's recruiter and candidate can read or send its messages.
-- Message senders and recipients are derived on the server rather than trusted from form data.
-- Recruiters may contact discoverable candidates, their own applicants, or candidates with an existing conversation.
-- Candidate email outreach uses a configured platform SMTP account, with the recruiter's account email as Reply-To. See [messaging and email setup](docs/us14-us15.md).
-- The default sender is `careerbridgemessage@gmail.com`. Run `python manage.py configure_email` once on the demo machine or hosted server to privately enter and verify its Google app password, then restart/reload the app.
-- Removed jobs are hidden from ordinary users but remain visible to their recruiter and administrators.
-- State-changing actions such as logout, job applications, removal, and restoration use POST requests.
-- CSV exports omit application notes and escape formula-like text to reduce spreadsheet-injection risk.
-- Other Django models must reference users with `settings.AUTH_USER_MODEL` or `get_user_model()`, not Django's default `User` class.
-
-## Development workflow
-
-The team currently works directly on `main` unless a feature branch is explicitly requested:
-
-```bash
-git switch main
-git pull --ff-only
-python3 manage.py check
-git status
-```
-
-Pull the latest changes before development, make one coherent change at a time, and inspect the working tree before committing. Do not commit local databases, virtual environments, secrets, or local session-planning files.
-
-## Production note
-
-The current settings are intended for local development. Before deployment, move the secret key to an environment variable, disable debug mode, configure allowed hosts, use a production database and static-file strategy, and run Django's deployment checks.
+The production database is separate from local SQLite and starts without local accounts or records. Keep credentials in environment variables. Candidate email composition uses the recruiter's email client and requires no SMTP setup.
